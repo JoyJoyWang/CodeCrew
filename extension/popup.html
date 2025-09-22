@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LeetCode Squad</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 12px; width: 360px; }
+      h1 { font-size: 16px; margin: 0 0 8px; }
+      .stat { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; }
+      .list { margin-top:8px; max-height:200px; overflow:auto; }
+      .item { font-size: 13px; margin: 6px 0; display: flex; justify-content: space-between; align-items: center; }
+      .muted { color: #666; font-size: 12px; }
+      button { padding:6px 10px; cursor:pointer; border: none; border-radius: 4px; background: #ff6b35; color: white; font-size: 12px; }
+      button:hover { background: #e55a2b; }
+      button:disabled { background: #ccc; cursor: not-allowed; }
+      .section { margin: 12px 0; }
+      .section-title { font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #333; }
+      .login-section { text-align: center; padding: 20px 0; }
+      .group-info { background: #f8f9fa; padding: 8px; border-radius: 4px; margin: 8px 0; }
+      .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+      .rank { font-weight: bold; color: #ff6b35; min-width: 20px; }
+      .user-info { flex: 1; margin-left: 8px; }
+      .username { font-weight: 500; }
+      .leetcode-username { color: #666; font-size: 11px; }
+      .solved-count { color: #4caf50; font-weight: bold; }
+      .loading { text-align: center; color: #666; padding: 20px; }
+      .error { color: #f44336; background: #ffebee; padding: 8px; border-radius: 4px; margin: 8px 0; }
+      .success { color: #4caf50; background: #e8f5e8; padding: 8px; border-radius: 4px; margin: 8px 0; }
+      .tabs { display: flex; margin-bottom: 12px; }
+      .tab { flex: 1; padding: 8px; text-align: center; background: #f5f5f5; border: none; cursor: pointer; }
+      .tab.active { background: #ff6b35; color: white; }
+      .tab-content { display: none; }
+      .tab-content.active { display: block; }
+    </style>
+  </head>
+  <body>
+    <h1>🏆 LeetCode 朋友刷题小组</h1>
+    
+    <!-- 登录状态 -->
+    <div id="login-section" class="login-section">
+      <div id="login-status">⏳ 检查登录状态...</div>
+      <button id="google-login-btn" style="display: none;">Google 登录</button>
+    </div>
+
+    <!-- 主要内容 -->
+    <div id="main-content" style="display: none;">
+      <!-- 标签页 -->
+      <div class="tabs">
+        <button class="tab active" data-tab="stats">📊 统计</button>
+        <button class="tab" data-tab="group">👥 小组</button>
+        <button class="tab" data-tab="ranking">🏆 排行</button>
+      </div>
+
+      <!-- 统计标签页 -->
+      <div id="stats-tab" class="tab-content active">
+        <div class="stat">
+          <div>今日通过题数</div>
+          <div id="today-count">-</div>
+        </div>
+        <div class="stat">
+          <div>数据来源</div>
+          <div id="data-source" class="muted">⏳ 加载中...</div>
+        </div>
+        <div class="list" id="recent-list"></div>
+        <div class="muted">打开 LeetCode 登录后自动刷新；每5分钟后台轮询。</div>
+      </div>
+
+      <!-- 小组标签页 -->
+      <div id="group-tab" class="tab-content">
+        <div id="group-info" class="group-info" style="display: none;">
+          <div class="section-title">当前小组</div>
+          <div id="group-name"></div>
+          <div id="group-members" class="muted"></div>
+          <button id="leave-group-btn" style="margin-top: 8px; background: #f44336;">离开小组</button>
+        </div>
+        <div id="no-group" style="text-align: center; padding: 20px;">
+          <div class="muted">还没有加入小组</div>
+          <button id="create-group-btn" style="margin: 8px 4px;">创建小组</button>
+          <button id="join-group-btn" style="margin: 8px 4px;">加入小组</button>
+        </div>
+        <div id="group-forms" style="display: none;">
+          <div id="create-group-form" style="display: none;">
+            <input type="text" id="group-name-input" placeholder="小组名称" style="width: 100%; padding: 8px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px;">
+            <input type="text" id="group-desc-input" placeholder="小组描述（可选）" style="width: 100%; padding: 8px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px;">
+            <button id="create-group-submit" style="width: 100%; margin: 8px 0;">创建</button>
+            <button id="cancel-create" style="width: 100%; background: #666;">取消</button>
+          </div>
+          <div id="join-group-form" style="display: none;">
+            <input type="text" id="invite-code-input" placeholder="邀请码" style="width: 100%; padding: 8px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px;">
+            <button id="join-group-submit" style="width: 100%; margin: 8px 0;">加入</button>
+            <button id="cancel-join" style="width: 100%; background: #666;">取消</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 排行榜标签页 -->
+      <div id="ranking-tab" class="tab-content">
+        <div id="ranking-content">
+          <div class="loading">⏳ 加载排行榜...</div>
+        </div>
+        <button id="refresh-ranking-btn" style="width: 100%; margin-top: 8px;">🔄 刷新</button>
+        <button id="remind-friends-btn" style="width: 100%; margin-top: 4px; background: #4caf50;">📧 提醒朋友</button>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+  </html>
+
+
